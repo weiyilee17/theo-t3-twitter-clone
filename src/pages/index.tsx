@@ -8,6 +8,7 @@ import { RouterOutputs, api } from "~/utils/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Image from "next/image";
+import { LoadingPage } from "~/components.tsx/loading";
 
 dayjs.extend(relativeTime);
 
@@ -62,17 +63,35 @@ const PostView = (props: PostWithUser) => {
   );
 };
 
-const Home: NextPage = () => {
-  const { data, isLoading } = api.posts.getAll.useQuery();
+const Feed = () => {
+  const { data, isLoading: postsLoading } = api.posts.getAll.useQuery();
 
-  const user = useUser();
-
-  if (isLoading) {
-    return <div>Loading...</div>;
+  if (postsLoading) {
+    return <LoadingPage />;
   }
 
   if (!data) {
     return <div>Something went wrong</div>;
+  }
+
+  return (
+    <div className="flex flex-col">
+      {[...data, ...data]?.map((fullPost) => (
+        <PostView {...fullPost} key={fullPost.post.id} />
+      ))}
+    </div>
+  );
+};
+
+const Home: NextPage = () => {
+  // React Query fetches data and uses its cache when the data doesn't change. Here we make the request early so in the future we can use the cache directly
+  api.posts.getAll.useQuery();
+
+  const { isLoaded: userLoaded, isSignedIn } = useUser();
+
+  // Return empty div if both aren't loaded, since user tends to load faster
+  if (!userLoaded) {
+    return <div />;
   }
 
   return (
@@ -87,7 +106,7 @@ const Home: NextPage = () => {
         <div className="w-full border-x border-slate-400 md:max-w-2xl">
           {/* Figure out why <SignIn /> doesn't work */}
           <div className="border-b border-slate-400 p-4">
-            {user.isSignedIn ? (
+            {isSignedIn ? (
               <CreatePostWizard />
             ) : (
               <div className="flex justify-center">
@@ -95,11 +114,7 @@ const Home: NextPage = () => {
               </div>
             )}
           </div>
-          <div className="flex flex-col">
-            {[...data, ...data]?.map((fullPost) => (
-              <PostView {...fullPost} key={fullPost.post.id} />
-            ))}
-          </div>
+          <Feed />
         </div>
       </main>
     </>
