@@ -31,7 +31,7 @@ export const postsRouter = createTRPCRouter({
     return posts.map((post) => {
       const author = allUsers.find((user) => user.id === post.authorID);
 
-      if (!author) {
+      if (!author || !author.username) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Author for post not found",
@@ -40,7 +40,11 @@ export const postsRouter = createTRPCRouter({
 
       return {
         post,
-        author,
+        // This is to prevent ESLint from complaining
+        author: {
+          ...author,
+          username: author.username,
+        },
       };
     });
   }),
