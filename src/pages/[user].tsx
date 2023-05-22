@@ -8,6 +8,30 @@ import { api } from "~/utils/api";
 import { appRouter } from "~/server/api/root";
 import { prisma } from "~/server/db";
 import { PageLayout } from "~/components/layout";
+import { LoadingPage } from "~/components/loading";
+import { PostView } from "~/components/post_view";
+
+const ProfileFeed = (props: { userID: string }) => {
+  const { data, isLoading } = api.posts.getPostByUserID.useQuery({
+    userID: props.userID,
+  });
+
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+
+  if (!data || !data.length) {
+    return <div>User has not posted</div>;
+  }
+
+  return (
+    <div className="flex flex-col">
+      {data.map((fullPost) => (
+        <PostView {...fullPost} key={fullPost.post.id} />
+      ))}
+    </div>
+  );
+};
 
 const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
   const { data } = api.profile.getUserByUsername.useQuery({
@@ -38,7 +62,8 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
         <div className="p-4 text-2xl font-bold">{`@${
           data.username ?? "username"
         }`}</div>
-        <div className="w-full border-b border-slate-400"></div>
+        <div className="w-full border-b border-slate-400" />
+        <ProfileFeed userID={data.id} />
       </PageLayout>
     </>
   );
