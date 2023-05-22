@@ -8,6 +8,7 @@ export const env = createEnv({
    */
   server: {
     DATABASE_URL: z.string().url(),
+    // node environment comes with the environment, so no need to include in ci.yml
     NODE_ENV: z.enum(["development", "test", "production"]),
   },
 

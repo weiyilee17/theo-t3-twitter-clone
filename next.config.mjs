@@ -20,5 +20,13 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
+  // This part can be done in github actions, so vercel's deployment can be faster
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  swcMinify: true,
 };
 export default config;
